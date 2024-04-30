@@ -9,6 +9,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+String? selectedcountrydropdown;
+
 class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
@@ -22,20 +24,74 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final Provider = context.watch<HomeScreenController>();
-    return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          context.read<HomeScreenController>().getdata();
-        },
+
+    return DefaultTabController(
+      length: Provider.categories.length,
+      child: Scaffold(
+        appBar: AppBar(
+            actions: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 40),
+                child: DropdownButton(
+                  hint: Text("country"),
+                  style: TextStyle(color: Colors.black),
+                  items: List.generate(
+                      Provider.Country.length,
+                      (index) => DropdownMenuItem(
+                            child: Text(Provider.Country[index]),
+                            value: Provider.Country[index],
+                          )),
+                  onChanged: (value) {
+                    selectedcountrydropdown = value;
+                  },
+                ),
+              )
+            ],
+            bottom: TabBar(
+                isScrollable: true,
+                onTap: (value) {
+                  context
+                      .read<HomeScreenController>()
+                      .oncatagoryselection(value);
+                },
+                tabs: List.generate(
+                    Provider.categories.length,
+                    (index) => Tab(
+                          child: Text(Provider.categories[index].toUpperCase()),
+                        )))),
+        body: Provider.isloading
+            ? Center(child: CircularProgressIndicator())
+            : ListView.separated(
+                itemCount: Provider.rescatagory?.articles?.length ?? 0,
+                itemBuilder: (context, index) {
+                  return Container(
+                    color: Colors.amber,
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 200,
+                          child: Image.network(
+                              "${Provider.rescatagory?.articles?[index].urlToImage}"),
+                        ),
+                        Text(
+                          "${Provider.rescatagory?.articles?[index].title?.toUpperCase()}",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(
+                          height: 20,
+                        ),
+                        Text(
+                          "${Provider.rescatagory?.articles?[index].description?.toLowerCase()}",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                separatorBuilder: (context, index) => SizedBox(
+                      height: 10,
+                    )),
       ),
-      body: Provider.isloading
-          ? Center(child: CircularProgressIndicator())
-          : ListView.builder(
-              itemCount: Provider.resmodel?.articles?.length,
-              itemBuilder: (context, index) => ListTile(
-                title: Text(Provider.resmodel?.articles?[index].title ?? ""),
-              ),
-            ),
     );
   }
 }
